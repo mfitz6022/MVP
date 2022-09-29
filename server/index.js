@@ -2,18 +2,31 @@ const express = require('express');
 const app = express();
 const http = require("http");
 const { Server } = require('socket.io');
-const cors = require("cors");
-const PORT = 8080;
-
-app.use(cors());
-
 const server = http.createServer(app);
-
+const cors = require("cors");
+const { v4: uuidV4 } = require('uuid');
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:3000",
     methods: ['GET', 'POST'],
   }
+})
+
+const PORT = process.env.PORT || 8080;
+
+app.set('views', __dirname + '/views')
+app.set('view engine', 'jsx')
+app.engine('jsx', require('express-react-views').createEngine())
+
+app.use(cors());
+app.use(express.static('public'))
+
+app.get('/', (req, res) => {
+  res.redirect(`/${uuidV4()}`)
+})
+
+app.get('/:room', (req, res) => {
+  res.render('index', { roomId: req.params.room })
 })
 
 io.on('connection', (socket) => {
@@ -24,16 +37,11 @@ io.on('connection', (socket) => {
     console.log(data);
   })
 
-  socket.on('connect_call', (data) => {
-    io.to(data.usersToCall).emit('callUsers', {
-      signal: data.signalData,
-      from: data.from,
-      name: data.name,
-    })
-  })
-
-  socket.on('answer_call', (data) => {
-    io.to(data.to).emit('callAccepted', data.signal)
+  socket.on('join-room', (data) => {
+    console.log(data)
+    console.log(`${data.username} has connected to room ${data.room} with id: ${data.id}`);
+    socket.join(data.room)
+    socket.broadcast.to(data.room).emit('user-connected', data.id);
   })
 
   socket.on('disconnect', () => {

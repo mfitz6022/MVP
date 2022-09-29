@@ -8,18 +8,18 @@ import UserList from './userList/UserList.jsx';
 import UserModal from './userList/UserModal.jsx';
 import io from 'socket.io-client';
 
+const socket = io.connect('http://localhost:8080');
+
 function App() {
   const [modalStatus, setModalStatus] = useState(true);
   const [username, setUsername] = useState('');
   const [serverList, setServerList] = useState(['Hackreactor']);
   const [currentServer, setCurrentServer] = useState('');
-  const [chatList, setChatList] = useState(['Trash tests', 'Trash API', 'Tetrio']);
+  const [chatList, setChatList] = useState(['General', 'Trash tests', 'Trash API', 'Tetrio', 'Help']);
   const [userList, setUserList] = useState([]);
   const [connectedUsers, setConnectedUsers] = useState([]);
   const [disconnectedUsers, setDisconnectedUsers] = useState([]);
-  const [currentChat, setCurrentChat] = useState('Trash tests');
-
-  const socket = io.connect('http://localhost:8080');
+  const [currentChat, setCurrentChat] = useState('General');
 
   return (
     <div className="App">
@@ -30,12 +30,15 @@ function App() {
           setCurrentServer={setCurrentServer}
           currentServer={currentServer}
           setUsername={setUsername}
-          /> : null}
+          /> : <div className="ui-container">
+            <ServerList />
+            <ChatSelector socket={socket} setCurrentChat={setCurrentChat} chatList={chatList} username={username} setUser={setUsername}/>
+            <TextChat socket={socket} currentChat={currentChat} username={username}/>
+            <UserList/>
+          </div>
+        }
       </div>
-      <ServerList />
-      <ChatSelector socket={socket} setCurrentChat={setCurrentChat} chatList={chatList} username={username} setUser={setUsername}/>
-      <TextChat socket={socket} currentChat={currentChat} username={username}/>
-      <UserList/>
+
     </div>
   );
 }

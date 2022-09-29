@@ -4,7 +4,7 @@ import Message from './Message.jsx';
 import io from 'socket.io-client';
 
 
-const TextChat = ( {currentChat, username, socket} ) => {
+const TextChat = ( { currentChat, username, socket } ) => {
   const [inputText, setInputText] = useState('');
   const [messageList, setMessageList] = useState([]);
   const [isLoading, setLoading] = useState(false);
