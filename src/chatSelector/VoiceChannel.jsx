@@ -7,44 +7,46 @@ const VoiceChannel = ({ user, setUser, socket }) => {
   const [isJoined, setIsJoined] = useState(false);
   const roomName = '@ Voice Channel';
   const username = user;
+  const videoGrid = document.getElementsByClassName('video-container')
+  const myVideo = document.createElement('video')
+  myVideo.muted = true
 
   const myPeer = new Peer(undefined, {
     host: '/',
     port: '3001',
   });
 
-  myPeer.on('open', (id) => {
-    socket.emit('join-room', {
-      id: id,
-      room: roomName,
-      username: username,
-    })
-  })
+  const peers = {};
+  let currentId;
 
-  const videoGrid = document.getElementsByClassName('video-container')
-  const myVideo = document.createElement('video')
-  myVideo.muted = true
-
-  navigator.mediaDevices.getUserMedia({
-    video: true,
-    audio: true,
-  }).then((stream) => {
-    addVideoStream(myVideo, stream)
-    myPeer.on('call', (call) => {
-      call.answer(stream)
-      const video = document.createElement('video')
-      call.on('stream', userVideoStream => {
-        addVideoStream(video, userVideoStream)
+  const joinChat = () => {
+    myPeer.on('open', (id) => {
+      currentId = id;
+      console.log('shit', currentId);
+      socket.emit('join-room', {
+        id: id,
+        room: roomName,
+        username: username,
       })
     })
-    socket.on('user-connected', (username) => {
-      connectToNewUser(username, stream)
-    })
-  })
 
-  // socket.on('user-connected', (username, stream) => {
-  //   connectToNewUser(username, stream)
-  // })
+    navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true,
+    }).then((stream) => {
+      addVideoStream(myVideo, stream)
+      myPeer.on('call', (call) => {
+        call.answer(stream)
+        const video = document.createElement('video')
+        call.on('stream', userVideoStream => {
+          addVideoStream(video, userVideoStream)
+        })
+      })
+      socket.on('user-connected', (username) => {
+        connectToNewUser(username, stream)
+      })
+    })
+  };
 
   const addVideoStream = (video, stream) => {
     video.srcObject = stream;
@@ -63,18 +65,40 @@ const VoiceChannel = ({ user, setUser, socket }) => {
     call.on('close', () => {
       video.remove();
     })
+    peers[username] = call;
   }
+
+  const toggleVoiceChannel = () => {
+    setIsJoined(!isJoined);
+  }
+
+  useEffect(() => {
+    if(isJoined) {
+      joinChat()
+    }
+  },[isJoined])
+
+  socket.on('user-disconnected', (data) => {
+    console.log('EVENT TRIGGERED', data)
+    if (peers[data.username]) {
+      peers[data.currentId].close()
+    }
+  })
 
   return (
     <div className="voice-channel-container">
-      <div className="voice-channel-name" onClick={() => {setIsJoined(!isJoined)}}>{roomName}</div>
-      <div className="video-container">
-
-      </div>
-      <div>users in channel go here</div>
+      <div className="voice-channel-name" onClick={toggleVoiceChannel}>{roomName}</div>
+      {isJoined ? <div className="video-container"></div> : null}
     </div>
   )
 }
+
+
+// socket.emit('leave-room', {
+//   id: currentId,
+//   room: roomName,
+//   username: username,
+// })
 
 export default VoiceChannel
 

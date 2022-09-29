@@ -38,10 +38,16 @@ io.on('connection', (socket) => {
   })
 
   socket.on('join-room', (data) => {
-    console.log(data)
-    console.log(`${data.username} has connected to room ${data.room} with id: ${data.id}`);
-    socket.join(data.room)
+    socket.join(data.room);
     socket.broadcast.to(data.room).emit('user-connected', data.id);
+    console.log(`${data.username} has connected to room ${data.room} with id: ${data.id}`);
+  })
+
+  socket.on('leave-room', (data) => {
+    console.log(data)
+    socket.leave(data.room);
+    socket.broadcast.to(data.room).emit('user-disconnected', data);
+    console.log(`user: ${data.username} with id: ${data.id} has left the room: ${data.room}`);
   })
 
   socket.on('disconnect', () => {

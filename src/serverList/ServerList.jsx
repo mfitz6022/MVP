@@ -1,9 +1,10 @@
 import React from 'react';
+import Server from './Server.jsx'
 
-const ServerList = () => {
+const ServerList = ({list}) => {
   return (
     <div className="server-list">
-      server list goes here
+      {list.map((server, index) => <Server server={server} key={index}/>)}
     </div>
   )
 };

@@ -31,10 +31,9 @@ function App() {
           currentServer={currentServer}
           setUsername={setUsername}
           /> : <div className="ui-container">
-            <ServerList />
+            <ServerList list={serverList}/>
             <ChatSelector socket={socket} setCurrentChat={setCurrentChat} chatList={chatList} username={username} setUser={setUsername}/>
             <TextChat socket={socket} currentChat={currentChat} username={username}/>
-            <UserList/>
           </div>
         }
       </div>
